@@ -25,13 +25,23 @@ class Kele
   end
   
   def get_roadmap(roadmap_id)
-    response = self.class.get(api_url("roadmaps/#{roadmap_id}"), headers: { "authorization" => @auth_token })
+    response = self.class.get(base_api_endpoint("roadmaps/#{roadmap_id}"), headers: { "authorization" => @auth_token })
     @roadmap = JSON.parse(response.body)
   end
 
   def get_checkpoint(checkpoint_id)
-    response = self.class.get(api_url("checkpoints/#{checkpoint_id}"), headers: { "authorization" => @auth_token })
+    response = self.class.get(base_api_endpoint("checkpoints/#{checkpoint_id}"), headers: { "authorization" => @auth_token })
     @checkpoint = JSON.parse(response.body)
+  end
+  
+  def get_messages(page)
+    response = self.class.get(base_api_endpoint("message_threads?page=#{page}"), headers: { "authorization" => @auth_token })
+    @get_messages = JSON.parse(response.body)
+  end
+
+  def create_message(recipient_id, subject, message)
+    response = self.class.post(base_api_endpoint("messages"), body: { "user_id": id, "recipient_id": recipient_id, "subject": subject, "stripped-text": message }, headers: { "authorization" => @auth_token })
+    puts response
   end
 
   private
