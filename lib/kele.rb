@@ -1,7 +1,9 @@
 require "httparty"
+require './lib/roadmap.rb'
 
 class Kele
   include HTTParty
+  include Roadmap
 
   def initialize(email, password)
     response = self.class.post(base_api_endpoint("sessions"), body: { email: email, password: password })
@@ -24,19 +26,13 @@ class Kele
     @mentor_availability = JSON.parse(response.body)
   end
   
-  def get_roadmap(roadmap_id)
-    response = self.class.get(base_api_endpoint("roadmaps/#{roadmap_id}"), headers: { "authorization" => @auth_token })
-    @roadmap = JSON.parse(response.body)
-  end
-
-  def get_checkpoint(checkpoint_id)
-    response = self.class.get(base_api_endpoint("checkpoints/#{checkpoint_id}"), headers: { "authorization" => @auth_token })
-    @checkpoint = JSON.parse(response.body)
-  end
-  
-  def get_messages(page)
-    response = self.class.get(base_api_endpoint("message_threads?page=#{page}"), headers: { "authorization" => @auth_token })
-    @get_messages = JSON.parse(response.body)
+  def get_messages(page = nil)
+    if page != nil
+      response = self.class.get("https://www.bloc.io/api/v1/message_threads", headers: { "authorization": @auth_token }, body: { "page": page })
+    else
+      response = self.class.get("https://www.bloc.io/api/v1/message_threads", headers: { "authorization": @auth_token })
+    end
+    JSON.parse(response.body)
   end
 
   def create_message(recipient_id, subject, message)
@@ -44,9 +40,16 @@ class Kele
     puts response
   end
   
-  def create_submissions(checkpoint_id, assignment_branch, assignment_commit_link, comment)
-    response = self.class.post(base_api_endpoint("checkpoint_submissions"), body: { "checkpoint_id": checkpoint_id, "assignment_branch": assignment_branch, "assignment_commit_link": assignment_commit_link, "comment": comment }, headers: { "authorization" => @auth_token })
-    puts response
+  def create_submissions(checkpoint_id, assignment_branch, assignment_commit_link, comment, enrollment_id)
+    response = self.class.post(base_api_endpoint("checkpoint_submissions"), headers: { "authorization" => @auth_token },
+     body: { 
+       "checkpoint_id": checkpoint_id, 
+       "assignment_branch": assignment_branch, 
+       "assignment_commit_link": assignment_commit_link, 
+       "comment": comment, 
+       "enrollment_id": enrollment_id
+       })
+      puts response
   end
 
   private
